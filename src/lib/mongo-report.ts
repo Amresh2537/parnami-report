@@ -99,25 +99,63 @@ export async function saveEntry(entry: {
   notes: string;
 }): Promise<void> {
   const db = await getDb();
-  // Get last targets for this person
-  const prefill = await getPrefill(entry.name);
-  const saleTarget = prefill?.saleTarget ?? entry.saleTarget;
-  const recoveryTarget = prefill?.recoveryTarget ?? entry.recoveryTarget;
-  const recovery45Target = prefill?.recovery45Target ?? entry.recovery45Target;
-
   await db.collection(COLLECTION).insertOne({
     entryDate: new Date().toISOString().slice(0, 10),
     weekFrom: entry.weekFrom,
     weekTo: entry.weekTo,
     name: entry.name,
-    saleTarget,
+    saleTarget: entry.saleTarget,
     saleAchieved: entry.saleAchieved,
-    recoveryTarget,
+    recoveryTarget: entry.recoveryTarget,
     recoveryAchieved: entry.recoveryAchieved,
-    recovery45Target,
+    recovery45Target: entry.recovery45Target,
     recovery45Achieved: entry.recovery45Achieved,
     notes: entry.notes,
   });
+}
+
+export async function updateEntry(entryId: string, entry: {
+  weekFrom: string;
+  weekTo: string;
+  name: string;
+  saleTarget: number;
+  saleAchieved: number;
+  recoveryTarget: number;
+  recoveryAchieved: number;
+  recovery45Target: number;
+  recovery45Achieved: number;
+  notes: string;
+}): Promise<void> {
+  const db = await getDb();
+
+  let objectId: ObjectId;
+  try {
+    objectId = new ObjectId(entryId);
+  } catch {
+    throw new Error("Invalid entry id.");
+  }
+
+  const result = await db.collection(COLLECTION).updateOne(
+    { _id: objectId },
+    {
+      $set: {
+        weekFrom: entry.weekFrom,
+        weekTo: entry.weekTo,
+        name: entry.name,
+        saleTarget: entry.saleTarget,
+        saleAchieved: entry.saleAchieved,
+        recoveryTarget: entry.recoveryTarget,
+        recoveryAchieved: entry.recoveryAchieved,
+        recovery45Target: entry.recovery45Target,
+        recovery45Achieved: entry.recovery45Achieved,
+        notes: entry.notes,
+      },
+    },
+  );
+
+  if (result.matchedCount === 0) {
+    throw new Error("Entry not found.");
+  }
 }
 
 export async function getNameHistory(name: string): Promise<HistoryResponse> {

@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("[api/report/entry] POST failed", error);
     const { message, status } = classifyError(error, "Failed to save entry.");
     return NextResponse.json({ error: message }, { status });
   }

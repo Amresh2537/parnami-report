@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
     const data = await getReport(from, to);
     return NextResponse.json(data);
   } catch (error) {
+    console.error("[api/report] GET failed", error);
     const { message, status } = classifyError(error, "Failed to generate report.");
     return NextResponse.json({ error: message }, { status });
   }

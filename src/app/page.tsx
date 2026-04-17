@@ -364,8 +364,11 @@ export default function Home() {
       setIsLoading(true);
       setStatus(editingEntryId ? "Updating entry..." : "Saving weekly achievement...");
 
-      const response = await fetch("/api/report/entry", {
-        method: "POST",
+      const endpoint = editingEntryId ? `/api/report/entry/${editingEntryId}` : "/api/report/entry";
+      const method = editingEntryId ? "PUT" : "POST";
+
+      const response = await fetch(endpoint, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -394,9 +397,7 @@ export default function Home() {
 
       await loadNames();
       await loadPrefill(finalName);
-      if (selectedNameFilter === finalName || !selectedNameFilter) {
-        await loadHistory(finalName);
-      }
+      await loadHistory(selectedNameFilter || finalName);
       await loadReport(form.weekFrom, form.weekTo);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to save entry.";
@@ -574,7 +575,6 @@ export default function Home() {
                     saleTarget: event.target.value,
                   }))
                 }
-                required
               />
             </label>
 
@@ -591,7 +591,6 @@ export default function Home() {
                     recoveryTarget: event.target.value,
                   }))
                 }
-                required
               />
             </label>
 
@@ -608,7 +607,6 @@ export default function Home() {
                     recovery45Target: event.target.value,
                   }))
                 }
-                required
               />
             </label>
 
@@ -625,7 +623,6 @@ export default function Home() {
                     saleAchieved: event.target.value,
                   }))
                 }
-                required
               />
             </label>
 
@@ -642,7 +639,6 @@ export default function Home() {
                     recoveryAchieved: event.target.value,
                   }))
                 }
-                required
               />
             </label>
 
@@ -659,7 +655,6 @@ export default function Home() {
                     recovery45Achieved: event.target.value,
                   }))
                 }
-                required
               />
             </label>
 
