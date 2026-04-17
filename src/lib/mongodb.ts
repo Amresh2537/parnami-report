@@ -15,10 +15,27 @@ function isAuthError(error: unknown): boolean {
   return message.includes("bad auth") || message.includes("authentication failed");
 }
 
+function hasTemplatePlaceholders(uri: string): boolean {
+  return uri.includes("<username>") || uri.includes("<url-encoded-password>") || uri.includes("<cluster-host>");
+}
+
+function isDnsSrvError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return message.includes("querysrv") || message.includes("ebadname") || message.includes("_mongodb._tcp");
+}
+
 export async function getDb(): Promise<Db> {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
     throw new Error("MONGODB_URI is not set in environment variables.");
+  }
+
+  if (hasTemplatePlaceholders(uri)) {
+    throw new Error("MONGODB_URI contains template placeholders. Set a real MongoDB Atlas URI in deployment environment variables.");
   }
 
   if (!clientPromise) {
@@ -30,6 +47,10 @@ export async function getDb(): Promise<Db> {
 
       if (isAuthError(error)) {
         throw new Error("Database authentication failed. Verify MONGODB_URI username/password and URL encoding.");
+      }
+
+      if (isDnsSrvError(error)) {
+        throw new Error("Database host resolution failed. Verify MONGODB_URI cluster host in deployment environment variables.");
       }
 
       throw error;
